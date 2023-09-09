@@ -14,7 +14,8 @@ Responds with [ImageResponse].
 #[non_exhaustive]
 pub struct Image {
     pub image: Option<TextureId>,
-    pub size: Vec2,
+    pub rect: Rect,
+    pub atlas_size: Option<Vec2>,
 }
 
 impl Image {
@@ -24,7 +25,19 @@ impl Image {
     {
         Self {
             image: Some(image.into()),
-            size,
+            rect: Rect::from_pos_size(Vec2::ZERO, size),
+            atlas_size: None,
+        }
+    }
+
+    pub fn new_image_rect<I>(image: I, rect: Rect, atlas_size: Vec2) -> Self
+    where
+        I: Into<TextureId>,
+    {
+        Self {
+            image: Some(image.into()),
+            rect,
+            atlas_size: Some(atlas_size),
         }
     }
 
@@ -48,7 +61,8 @@ impl Widget for ImageWidget {
         Self {
             props: Image {
                 image: None,
-                size: Vec2::ZERO,
+                rect: Rect::ZERO,
+                atlas_size: None,
             },
         }
     }
@@ -58,7 +72,7 @@ impl Widget for ImageWidget {
     }
 
     fn layout(&self, _ctx: LayoutContext<'_>, input: Constraints) -> Vec2 {
-        input.constrain_min(self.props.size)
+        input.constrain_min(self.props.rect.size())
     }
 
     fn paint(&self, ctx: PaintContext<'_>) {
@@ -66,8 +80,15 @@ impl Widget for ImageWidget {
 
         if let Some(image) = self.props.image {
             let mut rect = PaintRect::new(layout_node.rect);
+
+            let texture_rect = if let Some(atlas_size) = self.props.atlas_size {
+                self.props.rect.div_vec2(atlas_size)
+            } else {
+                Rect::ONE
+            };
+
             rect.color = Color::WHITE;
-            rect.texture = Some((image, Rect::ONE));
+            rect.texture = Some((image, texture_rect));
             rect.add(ctx.paint);
         }
     }

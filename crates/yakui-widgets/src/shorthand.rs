@@ -5,7 +5,7 @@
 
 use std::borrow::Cow;
 
-use yakui_core::geometry::{Color, Constraints, Dim2, Vec2};
+use yakui_core::geometry::{Color, Constraints, Dim2, Rect, Vec2};
 use yakui_core::widget::PaintContext;
 use yakui_core::{Alignment, ManagedTextureId, Response, TextureId};
 
@@ -68,6 +68,16 @@ where
     S: Into<Vec2>,
 {
     Image::new(image.into(), size.into()).show()
+}
+
+/// See [ImageRect].
+pub fn image_rect<I, S, V>(image: I, rect: S, atlas_size: V) -> Response<ImageWidget>
+where
+    I: Into<TextureId>,
+    S: Into<Rect>,
+    V: Into<Vec2>,
+{
+    Image::new_image_rect(image.into(), rect.into(), atlas_size.into()).show()
 }
 
 /// See [Pad].
